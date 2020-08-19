@@ -1,29 +1,56 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import "./styles.css";
 
+import api from './services/api'
+
 function App() {
+
+  const [repos, setRepos] = useState(['JavaScript', 'MongoDB', 'Docker']);
+
+  useEffect(() => {
+    api.get('/repositories').then(result => {
+      setRepos(result.data.map(repo => repo.title))
+    });
+
+  }, []);
+
   async function handleAddRepository() {
-    // TODO
+    const response = await api.post('repositories', {
+      id: "123",
+      url: "https://github.com/josepholiveira",
+      title: "Desafio ReactJS",
+      techs: ["React", "Node.js"],
+    });
+
+    setRepos([...repos, response.data.title]);
+
+    console.log(response.data);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    alert(id)
   }
 
   return (
     <div>
       <ul data-testid="repository-list">
-        <li>
-          Repositório 1
+        {repos.map(repo => <li key={repo}>{repo}</li>)}
 
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
+        <button onClick={() => handleRemoveRepository(1)}>
+          Remover
           </button>
-        </li>
       </ul>
 
-      <button onClick={handleAddRepository}>Adicionar</button>
+      <button onClick={handleAddRepository}>
+        Adicionar
+      </button>
+
+      <br />
+
+      <button onClick={() => {
+
+      }}>Request API</button>
     </div>
   );
 }
