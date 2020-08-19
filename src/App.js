@@ -5,52 +5,67 @@ import "./styles.css";
 import api from './services/api'
 
 function App() {
+  const objRepos = [{
+    id: 123,
+    title: 'nodejs-mysql-crud'
+  }];
 
-  const [repos, setRepos] = useState(['JavaScript', 'MongoDB', 'Docker']);
+  const [repos, setRepos] = useState(objRepos);
 
   useEffect(() => {
-    api.get('/repositories').then(result => {
-      setRepos(result.data.map(repo => repo.title))
+    api.get('/repositories').then(response => {
+      setRepos(response.data.map(repo => {
+        return {
+          id: repo.id,
+          title: repo.title
+        }
+      }))
     });
-
   }, []);
 
   async function handleAddRepository() {
     const response = await api.post('repositories', {
-      id: "123",
       url: "https://github.com/josepholiveira",
-      title: "Desafio ReactJS",
+      title: `Desafio da hora: ${Date.now()}`,
       techs: ["React", "Node.js"],
     });
 
-    setRepos([...repos, response.data.title]);
+    const newRepo = {
+      id: response.data.id,
+      title: response.data.title
+    };
 
-    console.log(response.data);
+    setRepos([...repos, newRepo]);
   }
 
-  async function handleRemoveRepository(id) {
-    alert(id)
+  async function handleRemoveRepository(repoId) {
+    await api.delete(`repositories/${repoId}`);
+
+    let index = repos.findIndex(repo => repo.id == repoId);
+    if (index >= 0) {
+      repos.splice(repos.findIndex(repo => repo.id == repoId), 1);
+      setRepos([...repos]);
+    }
   }
 
   return (
     <div>
-      <ul data-testid="repository-list">
-        {repos.map(repo => <li key={repo}>{repo}</li>)}
-
-        <button onClick={() => handleRemoveRepository(1)}>
-          Remover
-          </button>
-      </ul>
-
       <button onClick={handleAddRepository}>
         Adicionar
       </button>
 
-      <br />
-
-      <button onClick={() => {
-
-      }}>Request API</button>
+      <ul data-testid="repository-list">
+        {repos.map(({ id, title }) => {
+          return (
+            <li key={id}>
+              {title}
+              <button onClick={() => handleRemoveRepository(id)}>
+                Remover
+              </button>
+            </li>
+          )
+        })}
+      </ul>
     </div>
   );
 }
